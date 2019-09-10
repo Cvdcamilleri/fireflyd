@@ -29,36 +29,39 @@ from up_cache import u,p # file contains username/password for easier developmen
 
 print("[ fireflyd copyright Charlie Camilleri 2019 ]")
 
-print("[ logging in ]")
-cookies = login(u(),p())
-print("[ logged in ]")
+def refresh():
+	print("[ logging in ]")
+	cookies = login(u(),p())
+	print("[ logged in ]")
 
-tasks = []
+	tasks = []
 
-print("[ downloading tasks ]")
-pages=1
-while True:
-	_tasks = get_tasks(cookies=cookies,page=pages)
-	print("[ downloaded page",pages,", of length",len(_tasks['list'])," ]")
-	if ( len(_tasks['list']) == 0 ):
-		break
-	tasks.append(_tasks)
-	pages=pages+1
+	print("[ downloading tasks ]")
+	pages=1
+	while True:
+		_tasks = get_tasks(cookies=cookies,page=pages)
+		print("[ downloaded page",pages,", of length",len(_tasks['list'])," ]")
+		if ( len(_tasks['list']) == 0 ):
+			break
+		tasks.append(_tasks)
+		pages=pages+1
 
-pages=pages-1
-todo = []
-done = []
+	pages=pages-1
+	todo = []
+	done = []
 
-for i in range(pages):
-	for task in tasks[i]['list']:
-		print("[ processing task",task['id']," : ",task['title']," : ",task['dueDate'],"]")
-		if task['isDone']:
-			done.append(task)
-		else:
-			todo.append(task)
+	for i in range(pages):
+		for task in tasks[i]['list']:
+			print("[ processing task",task['id']," : ",task['title']," : ",task['dueDate'],"]")
+			if task['isDone']:
+				done.append(task)
+			else:
+				todo.append(task)
 
-_todo = json.dumps(todo)
-_done = json.dumps(done)
+	_todo = json.dumps(todo)
+	_done = json.dumps(done)
+
+refresh() # Initial refresh
 
 print("[ starting webserver ]")
 
@@ -66,16 +69,21 @@ from flask import Flask
 app = Flask(__name__)
 
 @app.route("/")
-def index():
+def web_index():
 	return "fireflyd copyright Charlie Camilleri 2019"
 
 @app.route("/tasks/todo")
-def todo():
+def web_todo():
 	return str(_todo)
 
 @app.route("/tasks/done")
-def done():
+def web_done():
 	return str(_done)
+
+@app.route("/refresh")
+def web_refresh():
+	refresh()
+	return "done"
 
 app.run()
 
