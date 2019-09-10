@@ -94,8 +94,8 @@ def get_tasks(cookies="",ownerType="OnlySetters",archiveStatus="All",completionS
         req = urllib.request.Request(url,data.encode("utf-8"),headers)
 
         handler = urllib.request.urlopen(req)
-        json_toytimes = json.loads(handler.read().decode("utf8"))
-        return {"list":json_toytimes["items"],"total count":json_toytimes["totalCount"]}
+        json_tasks = json.loads(handler.read().decode("utf8"))
+        return {"list":json_tasks["items"],"total count":json_tasks["totalCount"]}
 
 
 print("[ fireflyd_lib copyright Charlie Camilleri 2019 ]")
