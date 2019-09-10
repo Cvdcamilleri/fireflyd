@@ -29,6 +29,12 @@ from up_cache import u,p # file contains username/password for easier developmen
 
 print("[ fireflyd copyright Charlie Camilleri 2019 ]")
 
+global _done
+global _todo
+
+_done="<none>"
+_todo="<none>"
+
 def refresh():
 	print("[ logging in ]")
 	cookies = login(u(),p())
@@ -40,11 +46,12 @@ def refresh():
 	pages=1
 	while True:
 		_tasks = get_tasks(cookies=cookies,page=pages)
-		print("[ downloaded page",pages,", of length",len(_tasks['list'])," ]")
+		print("[ downloaded page",pages,", of length",len(_tasks['list'])," ]\t\t",end="\r")
 		if ( len(_tasks['list']) == 0 ):
 			break
 		tasks.append(_tasks)
 		pages=pages+1
+	print("")
 
 	pages=pages-1
 	todo = []
@@ -52,16 +59,19 @@ def refresh():
 
 	for i in range(pages):
 		for task in tasks[i]['list']:
-			print("[ processing task",task['id']," : ",task['title']," : ",task['dueDate'],"]")
+			print("[ processing task",task['id']," : ",task['dueDate'],"]\t\t",end="\r")
 			if task['isDone']:
 				done.append(task)
 			else:
 				todo.append(task)
+	print("")
 
 	_todo = json.dumps(todo)
 	_done = json.dumps(done)
 
-refresh() # Initial refresh
+	return _todo,_done
+
+_todo, _done = refresh() # Initial refresh
 
 print("[ starting webserver ]")
 
@@ -82,7 +92,7 @@ def web_done():
 
 @app.route("/refresh")
 def web_refresh():
-	refresh()
+	_todo,_done = refresh()
 	return "done"
 
 app.run()
