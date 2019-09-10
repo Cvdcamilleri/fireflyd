@@ -27,6 +27,8 @@
 from fireflyd_lib import *
 from up_cache import u,p # file contains username/password for easier development. WILL CHANGE LATER
 
+base_url = "wincoll.fireflycloud.net" # base firefly url -- not including http/https
+
 print("[ fireflyd copyright Charlie Camilleri 2019 ]")
 
 global _done
@@ -37,7 +39,7 @@ _todo="<none>"
 
 def refresh():
 	print("[ logging in ]")
-	cookies = login(u(),p())
+	cookies = login(u(),p(),base_url)
 	print("[ logged in ]")
 
 	tasks = []
@@ -45,7 +47,7 @@ def refresh():
 	print("[ downloading tasks ]")
 	pages=1
 	while True:
-		_tasks = get_tasks(cookies=cookies,page=pages)
+		_tasks = get_tasks(cookies=cookies,page=pages,base=base_url)
 		print("[ downloaded page",pages,", of length",len(_tasks['list'])," ]\t\t",end="\r")
 		if ( len(_tasks['list']) == 0 ):
 			break

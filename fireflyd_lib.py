@@ -1,14 +1,14 @@
 import urllib.request
 import json
 
-def login(u,p):
+def login(u,p,base):
         authdata = {
             "username": u,
             "password": p,
         }
 
         cookies = ""
-        url = "https://wincoll.fireflycloud.net/login/login.aspx?prelogin=https%3a%2f%2fwincoll.fireflycloud.net%2f"
+        url = "https://"+base+"/login/login.aspx?prelogin=https%3a%2f%2fwincoll.fireflycloud.net%2f"
         headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36"}
         req = urllib.request.Request(url,headers=headers)
         handler = urllib.request.urlopen(req)
@@ -18,9 +18,9 @@ def login(u,p):
                 if 'Set-Cookie' in header[0]:
                     cookies += header[1].split(" ")[0]+" "
 
-        url = "https://wincoll.fireflycloud.net/login/login.aspx?prelogin=https%3a%2f%2fwincoll.fireflycloud.net%2f&kr=Cloud:Cloud"
+        url = "https://"+base+"/login/login.aspx?prelogin=https%3a%2f%2fwincoll.fireflycloud.net%2f&kr=Cloud:Cloud"
         headers = {
-            "Host": "wincoll.fireflycloud.net",
+            "Host": base,
             "Connection": "keep-alive",
             "Content-Length": str(len(urllib.parse.urlencode(authdata))),
             "Cache-Control": "max-age=0",
@@ -60,7 +60,9 @@ def login(u,p):
             return ""
 
 
-def get_tasks(cookies="",ownerType="OnlySetters",archiveStatus="All",completionStatus="AllIncludingArchived",readStatus="All",markingStatus="All",sorting={"column":"DueDate","order":"Ascending"},page=1):
+def get_tasks(cookies="",ownerType="OnlySetters",archiveStatus="All",completionStatus="AllIncludingArchived",readStatus="All",markingStatus="All",sorting={"column":"DueDate","order":"Ascending"},page=1,base=None):
+        if base==None:
+         return False
         data = {
             "ownerType":ownerType,
             "page":page,
@@ -76,11 +78,11 @@ def get_tasks(cookies="",ownerType="OnlySetters",archiveStatus="All",completionS
         }
         data = str(json.dumps(data))
         headers = {
-            "Referer": "https://wincoll.fireflycloud.net/set-tasks",
-            "Host": "wincoll.fireflycloud.net",
+            "Referer": "https://"+base+"/set-tasks",
+            "Host": base,
             "Cookie": cookies,
             "Accept": "application/json, text/plain, */*",
-            "Origin": "https://wincoll.fireflycloud.net",
+            "Origin": "https://"+base,
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36",
             "DNT": "1",
             "Content-Type": "application/json",
@@ -90,7 +92,7 @@ def get_tasks(cookies="",ownerType="OnlySetters",archiveStatus="All",completionS
             "Accpet-Language": "en-US,en;q=0.9,ru;q=0.8",
         }
 
-        url = "https://wincoll.fireflycloud.net/api/v2/taskListing/view/self/tasks/filterBy"
+        url = "https://"+base+"/api/v2/taskListing/view/self/tasks/filterBy"
         req = urllib.request.Request(url,data.encode("utf-8"),headers)
 
         handler = urllib.request.urlopen(req)
