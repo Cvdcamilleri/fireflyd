@@ -33,15 +33,19 @@ print("[ fireflyd copyright Charlie Camilleri 2019 ]")
 
 global _done
 global _todo
+global __tasks
+global _cookies
 
 _done="<none>"
 _todo="<none>"
+
+__tasks = []
 
 def refresh():
 	print("[ logging in ]")
 	cookies = login(u(),p(),base_url)
 	print("[ logged in ]")
-
+	_cookies = cookies
 	tasks = []
 
 	print("[ downloading tasks ]")
@@ -62,6 +66,7 @@ def refresh():
 	for i in range(pages):
 		for task in tasks[i]['list']:
 			print("[ processing task",task['id']," : ",task['dueDate'],"]\t\t",end="\r")
+			__tasks.append(task)
 			if task['isDone']:
 				done.append(task)
 			else:
@@ -72,6 +77,12 @@ def refresh():
 	_done = json.dumps(done)
 
 	return _todo,_done
+
+def get_task(tid):
+	for task in __tasks:
+		if str(task['id']) == str(tid):
+			return str(task)
+	return "{ 'error':'not found' }"
 
 _todo, _done = refresh() # Initial refresh
 
@@ -96,6 +107,10 @@ def web_done():
 def web_refresh():
 	_todo,_done = refresh()
 	return "done"
+
+@app.route("/tasks/<tid>")
+def web_disp_task(tid):
+	return get_task(int(tid))
 
 app.run()
 
