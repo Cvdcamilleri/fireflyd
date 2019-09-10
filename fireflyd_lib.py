@@ -1,4 +1,5 @@
-import urllib
+import urllib.request
+import json
 
 def login(u,p):
         authdata = {
@@ -58,3 +59,43 @@ def login(u,p):
                 print("An unexpected error has occured! Please try again")
             return ""
 
+
+def get_tasks(cookies="",ownerType="OnlySetters",archiveStatus="All",completionStatus="AllIncludingArchived",readStatus="All",markingStatus="All",sorting={"column":"DueDate","order":"Ascending"},page=1):
+        data = {
+            "ownerType":ownerType,
+            "page":page,
+            "pageSize":10,
+            "archiveStatus":archiveStatus,
+            "completionStatus":completionStatus,
+            "readStatus":readStatus,
+            "markingStatus":markingStatus,
+            "sortingCriteria":[{
+                "column":sorting["column"],
+                "order":sorting["order"]
+            }]
+        }
+        data = str(json.dumps(data))
+        headers = {
+            "Referer": "https://wincoll.fireflycloud.net/set-tasks",
+            "Host": "wincoll.fireflycloud.net",
+            "Cookie": cookies,
+            "Accept": "application/json, text/plain, */*",
+            "Origin": "https://wincoll.fireflycloud.net",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36",
+            "DNT": "1",
+            "Content-Type": "application/json",
+            "Content-Length": str(len(data)),
+            "Connection": "keep-alive",
+            "Accept-Encoding": "gzip, deflate, br",
+            "Accpet-Language": "en-US,en;q=0.9,ru;q=0.8",
+        }
+
+        url = "https://wincoll.fireflycloud.net/api/v2/taskListing/view/self/tasks/filterBy"
+        req = urllib.request.Request(url,data.encode("utf-8"),headers)
+
+        handler = urllib.request.urlopen(req)
+        json_toytimes = json.loads(handler.read().decode("utf8"))
+        return {"list":json_toytimes["items"],"total count":json_toytimes["totalCount"]}
+
+
+print("[ fireflyd_lib copyright Charlie Camilleri 2019 ]")
