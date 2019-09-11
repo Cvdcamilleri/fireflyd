@@ -23,6 +23,32 @@
 "hasFileSubmission":false,
 "descriptionContainsQuestions":false}
 '''
+####SIGNATURE CHECK CODE####
+
+'''#correct hash
+import base64
+__hash = b'z4PhNX7vuL3xVChQ1m2AB9Yg5AULVxXcg/SpIdNs6c5H0NE8XYXysP+DGNKHfuwvY7kxvUdBeoGlODJ6+SfaPg=='
+__hash = base64.b64encode(__hash).decode()
+
+def check():
+	import sys,hashlib,base64
+	file = sys.argv[0]
+
+	with open(file,'r') as f:
+		dat = f.read().split(str("#START"+"#"))[1].split(str("#END"+"#"))[0]
+
+	m = hashlib.sha512()
+	hash = m.digest()
+	print("[sigcheck] SHA512:",base64.b64encode(hash).decode())
+	if hash != __hash:
+		print("[sigcheck] ERROR! hash not valid")
+		exit(0xFF)
+
+check() # check signature
+
+''' ############################
+
+#START#
 
 from fireflyd_lib import *
 from up_cache import u,p # file contains username/password for easier development. WILL CHANGE LATER
@@ -114,4 +140,5 @@ def web_disp_task(tid):
 
 app.run()
 
-
+#END SIGNED CODE#
+#END#
