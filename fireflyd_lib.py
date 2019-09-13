@@ -143,7 +143,7 @@ def markasdone(base="wincoll.fireflycloud.net",cookies="",task=None,done=True):
         guid = task['student']['guid']
         author = task['setter']['guid']
         sendtime = str( time.strftime("%Y-%m-%dT%H:%M:%S.000Z")  )
-        print("MARKASDONE STUDENT GUID="+guid+"  SETTER GUID="+author+"  TIMESTAMP="+sendtime)
+        print("MARKASTODO STUDENT GUID="+guid+"  SETTER GUID="+author+"  TIMESTAMP="+sendtime)
         data = {
                  "recipient": {
                    "type": "user",
@@ -182,10 +182,12 @@ def markasdone(base="wincoll.fireflycloud.net",cookies="",task=None,done=True):
         except urllib.error.HTTPError as e:
           with open("error.htm", "wb") as f:
            f.write(e.fp.read())
-          return "{\"error\":\"HTTPError\"}"
+          return "{\"error\":\"HTTPError "+str(handler.getcode())+"\"}"
         #json_tasks = json.loads(handler.read().decode("utf8"))
         return handler.read().decode()
 
+## NOT SUPPORTED. USE AT YOUR OWN RISK
+## TODO make this work
 def sendfile(base="wincoll.fireflycloud.net",cookies="",task=None):
         if base==None or cookies=="" or task==None:
            return '{"error":"incorrect parameter"}'
