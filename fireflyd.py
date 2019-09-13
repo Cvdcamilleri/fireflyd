@@ -2,7 +2,14 @@
 # fireflyd, Copyright Charlie Camilleri 2018
 
 from fireflyd_lib import *
-from up_cache import u,p # file contains username/password for easier development. WILL CHANGE LATER
+from getpass import *
+#from up_cache import u,p # file contains username/password for easier development. WILL CHANGE LATER
+#yeet i've just done it
+
+def u():
+	return input("Username: ")
+def p():
+	return getpass()
 
 mcookie = ""
 mcookieused = False
@@ -14,6 +21,8 @@ if len(sys.argv) > 1:
 		print("[ paste your cookie string here   ]")
 		mcookie = input()
 		mcookieused = True
+
+extcookies=mcookieused
 
 base_url = "wincoll.fireflycloud.net" # base firefly url -- not including http/https
 
@@ -112,15 +121,21 @@ def web_disp_task(tid):
 
 @app.route("/tasks/<tid>/markdone")
 def web_mark_done(tid):
-	task_ = get_task(int(tid)).replace("\'","\"").replace("None","\"None\"").replace("False","\"False\"").replace("True","\"True\"").replace(" ","")
-	task_ = json.loads(task_)
-	return markasdone(cookies=_cookies,base=base_url,task=task_)
+	if extcookies:
+		task_ = get_task(int(tid)).replace("\'","\"").replace("None","\"None\"").replace("False","\"False\"").replace("True","\"True\"").replace(" ","")
+		task_ = json.loads(task_)
+		return markasdone(cookies=_cookies,base=base_url,task=task_)
+	else:
+		return '{"error":"not supported with generated cookies. try again having used the -m argument"}'
 
 @app.route("/tasks/<tid>/marktodo")
 def web_mark_undone(tid):
-	task_ = get_task(int(tid)).replace("\'","\"").replace("None","\"None\"").replace("False","\"False\"").replace("True","\"True\"").replace(" ","")
-	task_ = json.loads(task_)
-	return markasdone(cookies=_cookies,base=base_url,task=task_,done=False)
+	if extcookies:
+		task_ = get_task(int(tid)).replace("\'","\"").replace("None","\"None\"").replace("False","\"False\"").replace("True","\"True\"").replace(" ","")
+		task_ = json.loads(task_)
+		return markasdone(cookies=_cookies,base=base_url,task=task_,done=False)
+	else:
+		return '{"error":"not supported with generated cookies. try again having used the -m argument"}'
 
 @app.route("/cookies")
 def web_cookie_dump():
