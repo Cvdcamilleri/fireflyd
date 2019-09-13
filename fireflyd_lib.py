@@ -198,12 +198,10 @@ Content-Disposition: form-data; name="fileAction"
 
 KEEPBOTH
 -----------------------------9430462821759297635809569235
-Content-Disposition: form-data; name="dscs bumps"; filename="dscs bumps"
+Content-Disposition: form-data; name="test file"; filename="testfile.txt"
 Content-Type: application/octet-stream
 
-bumps
-
-https://discord.gg/dmafuWf
+<TEST DATA>
 
 -----------------------------9430462821759297635809569235--
 """

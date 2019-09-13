@@ -128,10 +128,11 @@ def web_cookie_dump():
 
 @app.route("/sendfile")
 def send_file():
-	tid = 23770
-	task_ = get_task(int(tid)).replace("\'","\"").replace("None","\"None\"").replace("False","\"False\"").replace("True","\"True\"").replace(" ","")
-	task_ = json.loads(task_)
-	return sendfile(cookies=_cookies,base=base_url,task=task_)
+	#tid = 23770
+	#task_ = get_task(int(tid)).replace("\'","\"").replace("None","\"None\"").replace("False","\"False\"").replace("True","\"True\"").replace(" ","")
+	#task_ = json.loads(task_)
+	#return sendfile(cookies=_cookies,base=base_url,task=task_)
+	return '{"error":"not supported. check https://github.com/cvdcamilleri/fireflyd for more info"}'
 
 app.run()
 
