@@ -182,7 +182,7 @@ def markasdone(base="wincoll.fireflycloud.net",cookies="",task=None,done=True):
         except urllib.error.HTTPError as e:
           with open("error.htm", "wb") as f:
            f.write(e.fp.read())
-          return "{\"error\":\"HTTPError "+str(handler.getcode())+"\"}"
+          return "{\"error\":\"HTTPError \"}"
         #json_tasks = json.loads(handler.read().decode("utf8"))
         return handler.read().decode()
 
