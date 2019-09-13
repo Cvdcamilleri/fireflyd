@@ -1,5 +1,24 @@
-import urllib.request
-import json
+#!/usr/bin/env python3
+import urllib.request, urllib.error, urllib.parse
+import json,time,ssl
+
+ctx = ssl.create_default_context()
+ctx.check_hostname = False
+ctx.verify_mode = ssl.CERT_NONE
+
+global __cookies__
+__cookies__ = ""
+
+def gcookies():
+	return __cookies__
+
+def getcookies(handler):
+	headers = (handler.info().__dict__['_headers'])
+	for header in headers:
+		if 'Set-Cookie' in header[0]:
+				__cookies__ += header[1].split(" ")[0]+" "
+				print("++COOKIE SET:",header[1].split(" ")[0]+" ")
+	return gcookies()
 
 def login(u,p,base):
         authdata = {
@@ -8,15 +27,16 @@ def login(u,p,base):
         }
 
         cookies = ""
-        url = "https://"+base+"/login/login.aspx?prelogin=https%3a%2f%2fwincoll.fireflycloud.net%2f"
+        url = "https://"+base+"/login/login.aspx?prelogin=https%3a%2f%2f"+base+"%2f"
         headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36"}
         req = urllib.request.Request(url,headers=headers)
-        handler = urllib.request.urlopen(req)
+        handler = urllib.request.urlopen(req, context=ctx)
 
         headers = (handler.info().__dict__['_headers'])
         for header in headers:
                 if 'Set-Cookie' in header[0]:
                     cookies += header[1].split(" ")[0]+" "
+                    print("++COOKIE SET:",header[1].split(" ")[0]+" ")
 
         url = "https://"+base+"/login/login.aspx?prelogin=https%3a%2f%2fwincoll.fireflycloud.net%2f&kr=Cloud:Cloud"
         headers = {
@@ -38,15 +58,17 @@ def login(u,p,base):
 
 
         try:
-            handler = urllib.request.urlopen(req)
+            handler = urllib.request.urlopen(req, context=ctx)
             headers = (handler.info().__dict__['_headers'])
             #print(headers)
             for header in headers:
                 if 'Set-Cookie' in header[0]:
                     cookies += header[1].split(" ")[0]+" "
+                    print("++COOKIE SET:",header[1].split(" ")[0]+" ")
 
             #print(cookies.replace(" ","\n"))
             #print("\nCookies setup complete!")
+            __cookies__ = cookies
             return cookies
         except HTTPError as error:
             content = error.read().decode("utf-8")
@@ -95,9 +117,76 @@ def get_tasks(cookies="",ownerType="OnlySetters",archiveStatus="All",completionS
         url = "https://"+base+"/api/v2/taskListing/view/self/tasks/filterBy"
         req = urllib.request.Request(url,data.encode("utf-8"),headers)
 
-        handler = urllib.request.urlopen(req)
+        handler = urllib.request.urlopen(req, context=ctx)
+        getcookies(handler)
         json_tasks = json.loads(handler.read().decode("utf8"))
         return {"list":json_tasks["items"],"total count":json_tasks["totalCount"]}
+#{
+#  "recipient":{
+#    "type": "user",
+#    "guid": "DB:Cloud:DB:SIMSstu:18526"
+#  },
+#  "event": {
+#    "type": "mark-as-done",
+#    "feedback": "",
+#    "sent": "2019-09-12T07:30:39.670Z",
+#    "author": "DB:Cloud:DB:SIMSstu:18526"
+#  }
+#}
+def markasdone(base="wincoll.fireflycloud.net",cookies="",task=None,done=True):
+        if done:
+           eventype="done"
+        else:
+           eventype="undone"
+        if base==None or cookies=="" or task==None:
+           return '{"error":"incorrect parameter"}'
+        guid = task['student']['guid']
+        author = task['setter']['guid']
+        sendtime = str( time.strftime("%Y-%m-%dT%H:%M:%S.000Z")  )
+        print("MARKASDONE STUDENT GUID="+guid+"  SETTER GUID="+author+"  TIMESTAMP="+sendtime)
+        data = {
+                 "recipient": {
+                   "type": "user",
+                   "guid": guid
+                 },
+                 "event": {
+                   "type": "mark-as-"+eventype,
+                   "feedback": "",
+                   "sent": str(sendtime),
+                   "author": author,
+                 }
+        }
+        data = str(json.dumps(data)).replace(" ","")
+        data = "data="+urllib.parse.quote_plus(data)
+        print("DATA: ",data)
+        extracookies = "" #"FireflyNETLoggedIn=yes; Prelogin=https://wincoll.fireflycloud.net/;"
+        headers = {
+            "Host": base,
+            "User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:69.0) Gecko/20100101 Firefox/69.0",
+            "Accept": "*/*",
+            "Accept-Language":"en-GB,en;q=0.5",
+            "Accept-Encoding":"gzip, deflate, br",
+            "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+            "X-Requested-With":"XMLHttpRequest",
+            "Content-Length": str(len(data)),
+            "Connection":"keep-alive",
+            "Referer":"https://"+base+"/set-tasks/"+str(task['id']),
+            "Cookie":str(cookies+extracookies)
+        }
 
+        url = "https://"+base+"/_api/1.0/tasks/"+str(task['id'])+"/responses"
+        req = urllib.request.Request(url,data.encode("ascii"),headers)
+
+        try:
+         handler = urllib.request.urlopen(req, context=ctx)
+        except urllib.error.HTTPError as e:
+          with open("error.htm", "wb") as f:
+           f.write(e.fp.read())
+          return "{\"error\":\"HTTPError\"}"
+        #json_tasks = json.loads(handler.read().decode("utf8"))
+        return handler.read().decode()
+
+if __name__ == "__main__":
+	print("this is a library")
 
 print("[ fireflyd_lib copyright Charlie Camilleri 2019 ]")

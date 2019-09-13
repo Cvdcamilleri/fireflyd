@@ -1,57 +1,19 @@
 #!/usr/bin/env python3
-
 # fireflyd, Copyright Charlie Camilleri 2018
-
-''' TOYTIME example
-{
-"id":1989,
-"title":"Problems as detailed on the sheet given out up to books",
-"setter":{"guid":"DB:Cloud:DB:SIMSemp:227","name":"Mr T Ayres","deleted":false},
-"addressees":[{"guid":"DB:Cloud:DB:SIMS:15406","name":"Class 1P8","isGroup":true}],
-"setDate":"2018-09-04",
-"dueDate":"2018-09-05",
-"student":{"guid":"DB:Cloud:DB:SIMSstu:18145","name":"Gleb Koval","deleted":false},
-"mark":{"isMarked":false,"grade":null,"mark":null,"markMax":null,"hasFeedback":false},
-"isPersonalTask":false,
-"isExcused":false,
-"isDone":true,
-"isResubmissionRequired":false,
-"lastMarkedAsDoneBy":{"guid":"DB:Cloud:DB:SIMSstu:18145","name":"Gleb Koval","deleted":false},
-"archived":false,
-"isUnread":false,
-"fileSubmissionRequired":false,
-"hasFileSubmission":false,
-"descriptionContainsQuestions":false}
-'''
-####SIGNATURE CHECK CODE####
-
-'''#correct hash
-import base64
-__hash = b'z4PhNX7vuL3xVChQ1m2AB9Yg5AULVxXcg/SpIdNs6c5H0NE8XYXysP+DGNKHfuwvY7kxvUdBeoGlODJ6+SfaPg=='
-__hash = base64.b64encode(__hash).decode()
-
-def check():
-	import sys,hashlib,base64
-	file = sys.argv[0]
-
-	with open(file,'r') as f:
-		dat = f.read().split(str("#START"+"#"))[1].split(str("#END"+"#"))[0]
-
-	m = hashlib.sha512()
-	hash = m.digest()
-	print("[sigcheck] SHA512:",base64.b64encode(hash).decode())
-	if hash != __hash:
-		print("[sigcheck] ERROR! hash not valid")
-		exit(0xFF)
-
-check() # check signature
-
-''' ############################
-
-#START#
 
 from fireflyd_lib import *
 from up_cache import u,p # file contains username/password for easier development. WILL CHANGE LATER
+
+mcookie = ""
+mcookieused = False
+
+import sys
+if len(sys.argv) > 1:
+	if sys.argv[1] == "-m":
+		print("[ starting in manual cookies mode ]")
+		print("[ paste your cookie string here   ]")
+		mcookie = input()
+		mcookieused = True
 
 base_url = "wincoll.fireflycloud.net" # base firefly url -- not including http/https
 
@@ -66,10 +28,15 @@ _done="<none>"
 _todo="<none>"
 
 __tasks = []
+_cookies="<none>"
 
 def refresh():
-	print("[ logging in ]")
-	cookies = login(u(),p(),base_url)
+	if not mcookieused:
+		print("[ logging in ]")
+		cookies = login(u(),p(),base_url)
+	elif mcookieused:
+		print("[ cookes pasted ]")
+		cookies = mcookie
 	print("[ logged in ]")
 	_cookies = cookies
 	tasks = []
@@ -101,8 +68,11 @@ def refresh():
 
 	_todo = json.dumps(todo)
 	_done = json.dumps(done)
+	_cookies = cookies
 
-	return _todo,_done
+	print(cookies)
+	return _todo,_done,_cookies
+
 
 def get_task(tid):
 	for task in __tasks:
@@ -110,7 +80,9 @@ def get_task(tid):
 			return str(task)
 	return "{ 'error':'not found' }"
 
-_todo, _done = refresh() # Initial refresh
+_todo, _done, _cookies = refresh() # Initial refresh
+
+print(gcookies())
 
 print("[ starting webserver ]")
 
@@ -137,6 +109,22 @@ def web_refresh():
 @app.route("/tasks/<tid>")
 def web_disp_task(tid):
 	return get_task(int(tid))
+
+@app.route("/tasks/<tid>/markdone")
+def web_mark_done(tid):
+	task_ = get_task(int(tid)).replace("\'","\"").replace("None","\"None\"").replace("False","\"False\"").replace("True","\"True\"").replace(" ","")
+	task_ = json.loads(task_)
+	return markasdone(cookies=_cookies,base=base_url,task=task_)
+
+@app.route("/tasks/<tid>/marktodo")
+def web_mark_undone(tid):
+	task_ = get_task(int(tid)).replace("\'","\"").replace("None","\"None\"").replace("False","\"False\"").replace("True","\"True\"").replace(" ","")
+	task_ = json.loads(task_)
+	return markasdone(cookies=_cookies,base=base_url,task=task_,done=False)
+
+@app.route("/cookies")
+def web_cookie_dump():
+	return _cookies.replace(";",";<br>\n")
 
 app.run()
 
