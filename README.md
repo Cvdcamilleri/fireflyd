@@ -4,5 +4,6 @@ fireflyd is my attempt at creating a program that locally caches Firefly data, a
 
 # Features:
 
-task retrieval - DONE<br>
-task submission - ALMOST COMPLETE
+task retrieval    - DONE<br>
+task marking      - DONE<br>
+task submission   - PENDING<br>
