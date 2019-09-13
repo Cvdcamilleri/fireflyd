@@ -186,6 +186,56 @@ def markasdone(base="wincoll.fireflycloud.net",cookies="",task=None,done=True):
         #json_tasks = json.loads(handler.read().decode("utf8"))
         return handler.read().decode()
 
+def sendfile(base="wincoll.fireflycloud.net",cookies="",task=None):
+        if base==None or cookies=="" or task==None:
+           return '{"error":"incorrect parameter"}'
+        guid = task['student']['guid']
+        author = task['setter']['guid']
+        sendtime = str( time.strftime("%Y-%m-%dT%H:%M:%S.000Z")  )
+        print("STUDENT GUID="+guid+"  SETTER GUID="+author+"  TIMESTAMP="+sendtime)
+        data = """-----------------------------9430462821759297635809569235
+Content-Disposition: form-data; name="fileAction"
+
+KEEPBOTH
+-----------------------------9430462821759297635809569235
+Content-Disposition: form-data; name="dscs bumps"; filename="dscs bumps"
+Content-Type: application/octet-stream
+
+bumps
+
+https://discord.gg/dmafuWf
+
+-----------------------------9430462821759297635809569235--
+"""
+        #data = str(json.dumps(data)).replace(" ","")
+        #data = "data="+urllib.parse.quote_plus(data)
+        #print("DATA: ",data)
+        extracookies = "" #"FireflyNETLoggedIn=yes; Prelogin=https://wincoll.fireflycloud.net/;"
+        headers = {
+            "Host": base,
+            "User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:69.0) Gecko/20100101 Firefox/69.0",
+            "Accept": "*/*",
+            "Accept-Language":"en-GB,en;q=0.5",
+            "Accept-Encoding":"gzip, deflate, br",
+            "Content-Type": "multipart/form-data; boundary=---------------------------9430462821759297635809569235",
+            "Content-Length": str(len(data)),
+            "Connection":"keep-alive",
+            "Referer":"https://"+base+"/set-tasks/"+str(task['id']),
+            "Cookie":str(cookies+extracookies)
+        }
+        folderid="90034"
+        url = "https://"+base+"/folders/"+folderid+"/files"
+        req = urllib.request.Request(url,data.encode("ascii"),headers)
+
+        try:
+         handler = urllib.request.urlopen(req, context=ctx)
+        except urllib.error.HTTPError as e:
+          with open("error.htm", "wb") as f:
+           f.write(e.fp.read())
+          return "{\"error\":\"HTTPError\"}"
+        #json_tasks = json.loads(handler.read().decode("utf8"))
+        return handler.read().decode()
+
 if __name__ == "__main__":
 	print("this is a library")
 

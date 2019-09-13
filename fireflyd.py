@@ -126,6 +126,13 @@ def web_mark_undone(tid):
 def web_cookie_dump():
 	return _cookies.replace(";",";<br>\n")
 
+@app.route("/sendfile")
+def send_file():
+	tid = 23770
+	task_ = get_task(int(tid)).replace("\'","\"").replace("None","\"None\"").replace("False","\"False\"").replace("True","\"True\"").replace(" ","")
+	task_ = json.loads(task_)
+	return sendfile(cookies=_cookies,base=base_url,task=task_)
+
 app.run()
 
 #END SIGNED CODE#
