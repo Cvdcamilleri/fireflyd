@@ -6,9 +6,10 @@ fireflyd is my attempt at creating a program that locally caches Firefly data, a
 
 - [x] task retrieval
 - [x] task marking
+- [x] comments
 - [ ] file submission
 
 # Problems
 
-file submission -- requires RE of [**vendor.93fe217cd90803c037ba.min.js**](https://github.com/Cvdcamilleri/fireflyd/blob/master/firefly_assets/vendor.93fe217cd90803c037ba.min.js)
+file submission -- likely requires RE of [**vendor.93fe217cd90803c037ba.min.js**](https://github.com/Cvdcamilleri/fireflyd/blob/master/firefly_assets/vendor.93fe217cd90803c037ba.min.js)
 to find where folder IDs are generated/found

@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 # fireflyd, Copyright Charlie Camilleri 2018
 
+import urllib.request, urllib.error, urllib.parse
 from fireflyd_lib import *
 from getpass import *
+import base64
 #from up_cache import u,p # file contains username/password for easier development. WILL CHANGE LATER
 #yeet i've just done it
 
@@ -95,7 +97,7 @@ print(gcookies())
 
 print("[ starting webserver ]")
 
-from flask import Flask
+from flask import Flask,request
 app = Flask(__name__)
 
 @app.route("/")
@@ -124,7 +126,7 @@ def web_mark_done(tid):
 	if extcookies:
 		task_ = get_task(int(tid)).replace("\'","\"").replace("None","\"None\"").replace("False","\"False\"").replace("True","\"True\"").replace(" ","")
 		task_ = json.loads(task_)
-		return markasdone(cookies=_cookies,base=base_url,task=task_)
+		return feedback(cookies=_cookies,base=base_url,task=task_)
 	else:
 		return '{"error":"not supported with generated cookies. try again having used the -m argument"}'
 
@@ -133,7 +135,17 @@ def web_mark_undone(tid):
 	if extcookies:
 		task_ = get_task(int(tid)).replace("\'","\"").replace("None","\"None\"").replace("False","\"False\"").replace("True","\"True\"").replace(" ","")
 		task_ = json.loads(task_)
-		return markasdone(cookies=_cookies,base=base_url,task=task_,done=False)
+		return feedback(cookies=_cookies,base=base_url,task=task_,done=False)
+	else:
+		return '{"error":"not supported with generated cookies. try again having used the -m argument"}'
+
+@app.route("/tasks/<tid>/comment")
+def web_comment(tid):
+	if extcookies:
+		b64txt = urllib.parse.unquote_plus(request.args['b64'])
+		task_ = get_task(int(tid)).replace("\'","\"").replace("None","\"None\"").replace("False","\"False\"").replace("True","\"True\"").replace(" ","")
+		task_ = json.loads(task_)
+		return feedback(cookies=_cookies,base=base_url,task=task_,iscomment=True,comment=base64.b64decode(b64txt).decode())
 	else:
 		return '{"error":"not supported with generated cookies. try again having used the -m argument"}'
 
