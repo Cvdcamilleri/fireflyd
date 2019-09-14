@@ -17,15 +17,15 @@ mcookie = ""
 mcookieused = False
 
 basicauth=False
+usehmac = False
 
 ap = argparse.ArgumentParser()
 ap.add_argument("-m", "--manual", required=False, help="Use custom cookes", action='store_true')
-ap.add_argument("-b", "--httpbasic", required=False, help="Use HTTP Basic Authentication", action='store_true')
+ap.add_argument("-h", "--hmac", required=False, help="Use HMAC for the HTTP API", action='store_true')
 args = vars(ap.parse_args())
 
-if args['httpbasic']:
-	basicauth=True
-
+if args['hmac']:
+	usehmac = True
 
 import sys
 if args['manual']:
@@ -114,10 +114,13 @@ from flask import Flask,request
 app = Flask(__name__)
 
 hmac_key = "t35t hm4c k3y"
-def computehmac(data):
+def computehmac(data,mac=None):
 	data = data.encode()
 	key = hmac_key.encode()
-	return hmac.new(key, data, hashlib.sha512).hexdigest()
+	if usehmac:
+		return hmac.new(key, data, hashlib.sha512).hexdigest()
+	else:
+		return mac
 
 @app.route("/")
 def web_index():
@@ -139,14 +142,14 @@ def web_refresh():
 @app.route("/<hmac>/tasks/<tid>")
 def web_disp_task(hmac,tid):
 	if hmac != computehmac(tid):
-                print("BAD HMAC, EXPECTED ",computehmac(tid))
+                print("BAD HMAC, EXPECTED ",computehmac(tid,mac=hmac))
                 return '{"error":"invalid MAC"}'
 	return get_task(int(tid))
 
 @app.route("/<hmac>/tasks/<tid>/markdone")
 def web_mark_done(hmac,tid):
 	if hmac != computehmac(tid):
-		print("BAD HMAC, EXPECTED ",computehmac(tid))
+		print("BAD HMAC, EXPECTED ",computehmac(tid,mac=hmac))
 		return '{"error":"invalid MAC"}'
 	if extcookies:
 		task_ = get_task(int(tid)).replace("\'","\"").replace("None","\"None\"").replace("False","\"False\"").replace("True","\"True\"").replace(" ","")
@@ -158,7 +161,7 @@ def web_mark_done(hmac,tid):
 @app.route("/<hmac>tasks/<tid>/marktodo")
 def web_mark_undone(tid):
 	if hmac != computehmac(tid):
-                print("BAD HMAC, EXPECTED ",computehmac(tid))
+                print("BAD HMAC, EXPECTED ",computehmac(tid,mac=hmac))
                 return '{"error":"invalid MAC"}'
 	if extcookies:
 		task_ = get_task(int(tid)).replace("\'","\"").replace("None","\"None\"").replace("False","\"False\"").replace("True","\"True\"").replace(" ","")
@@ -170,7 +173,7 @@ def web_mark_undone(tid):
 @app.route("/<hmac>/tasks/<tid>/comment")
 def web_comment(tid):
 	if hmac != computehmac(request.args['b64']):
-                print("BAD HMAC, EXPECTED ",computehmac(request.args['b64']))
+                print("BAD HMAC, EXPECTED ",computehmac(request.args['b64'],mac=hmac))
                 return '{"error":"invalid MAC"}'
 	if extcookies:
 		b64txt = urllib.parse.unquote_plus(request.args['b64'])
