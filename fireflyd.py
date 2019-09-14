@@ -4,7 +4,7 @@
 import urllib.request, urllib.error, urllib.parse
 from fireflyd_lib import *
 from getpass import *
-import base64
+import argparse,base64,hmac,hashlib
 #from up_cache import u,p # file contains username/password for easier development. WILL CHANGE LATER
 #yeet i've just done it
 
@@ -16,13 +16,26 @@ def p():
 mcookie = ""
 mcookieused = False
 
+basicauth=False
+
+ap = argparse.ArgumentParser()
+ap.add_argument("-m", "--manual", required=False, help="Use custom cookes", action='store_true')
+ap.add_argument("-b", "--httpbasic", required=False, help="Use HTTP Basic Authentication", action='store_true')
+args = vars(ap.parse_args())
+
+if args['httpbasic']:
+	basicauth=True
+
+
 import sys
-if len(sys.argv) > 1:
-	if sys.argv[1] == "-m":
-		print("[ starting in manual cookies mode ]")
-		print("[ paste your cookie string here   ]")
-		mcookie = input()
-		mcookieused = True
+if args['manual']:
+	print("[ starting in manual cookies mode ]")
+	print("[ paste your cookie string here   ]")
+	mcookie = input()
+	mcookieused = True
+
+from flask_httpauth import HTTPBasicAuth
+auth = HTTPBasicAuth()
 
 extcookies=mcookieused
 
@@ -100,6 +113,12 @@ print("[ starting webserver ]")
 from flask import Flask,request
 app = Flask(__name__)
 
+hmac_key = "t35t hm4c k3y"
+def computehmac(data):
+	data = data.encode()
+	key = hmac_key.encode()
+	return hmac.new(key, data, hashlib.sha512).hexdigest()
+
 @app.route("/")
 def web_index():
 	return "fireflyd copyright Charlie Camilleri 2019"
@@ -117,12 +136,18 @@ def web_refresh():
 	_todo,_done = refresh()
 	return "done"
 
-@app.route("/tasks/<tid>")
-def web_disp_task(tid):
+@app.route("/<hmac>/tasks/<tid>")
+def web_disp_task(hmac,tid):
+	if hmac != computehmac(tid):
+                print("BAD HMAC, EXPECTED ",computehmac(tid))
+                return '{"error":"invalid MAC"}'
 	return get_task(int(tid))
 
-@app.route("/tasks/<tid>/markdone")
-def web_mark_done(tid):
+@app.route("/<hmac>/tasks/<tid>/markdone")
+def web_mark_done(hmac,tid):
+	if hmac != computehmac(tid):
+		print("BAD HMAC, EXPECTED ",computehmac(tid))
+		return '{"error":"invalid MAC"}'
 	if extcookies:
 		task_ = get_task(int(tid)).replace("\'","\"").replace("None","\"None\"").replace("False","\"False\"").replace("True","\"True\"").replace(" ","")
 		task_ = json.loads(task_)
@@ -130,8 +155,11 @@ def web_mark_done(tid):
 	else:
 		return '{"error":"not supported with generated cookies. try again having used the -m argument"}'
 
-@app.route("/tasks/<tid>/marktodo")
+@app.route("/<hmac>tasks/<tid>/marktodo")
 def web_mark_undone(tid):
+	if hmac != computehmac(tid):
+                print("BAD HMAC, EXPECTED ",computehmac(tid))
+                return '{"error":"invalid MAC"}'
 	if extcookies:
 		task_ = get_task(int(tid)).replace("\'","\"").replace("None","\"None\"").replace("False","\"False\"").replace("True","\"True\"").replace(" ","")
 		task_ = json.loads(task_)
@@ -139,8 +167,11 @@ def web_mark_undone(tid):
 	else:
 		return '{"error":"not supported with generated cookies. try again having used the -m argument"}'
 
-@app.route("/tasks/<tid>/comment")
+@app.route("/<hmac>/tasks/<tid>/comment")
 def web_comment(tid):
+	if hmac != computehmac(request.args['b64']):
+                print("BAD HMAC, EXPECTED ",computehmac(request.args['b64']))
+                return '{"error":"invalid MAC"}'
 	if extcookies:
 		b64txt = urllib.parse.unquote_plus(request.args['b64'])
 		task_ = get_task(int(tid)).replace("\'","\"").replace("None","\"None\"").replace("False","\"False\"").replace("True","\"True\"").replace(" ","")
@@ -161,7 +192,21 @@ def send_file():
 	#return sendfile(cookies=_cookies,base=base_url,task=task_)
 	return '{"error":"not supported. check https://github.com/cvdcamilleri/fireflyd for more info"}'
 
-app.run()
+#@auth.verify_password
+#def verify_password(username, password):
+#    if username in users:
+#        return check_password_hash(users.get(username), password)
+#    return False
+
+#from flask_httpauth import HTTPBasicAuth
+#auth = HTTPBasicAuth()
+
+if not basicauth:
+	app.run(ssl_context=('ssl/cert.pem', 'ssl/key.pem'))
+elif basicauth:
+	print("! HTTP Basic not yet supported !")
+	exit(0xFF)
+
 
 #END SIGNED CODE#
 #END#
