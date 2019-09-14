@@ -133,30 +133,57 @@ def get_tasks(cookies="",ownerType="OnlySetters",archiveStatus="All",completionS
 #    "author": "DB:Cloud:DB:SIMSstu:18526"
 #  }
 #}
-def markasdone(base="wincoll.fireflycloud.net",cookies="",task=None,done=True):
-        if done:
-           eventype="done"
+def feedback(base="wincoll.fireflycloud.net",cookies="",task=None,done=True,iscomment=False,comment=""):
+        if done and not iscomment:
+           eventype="mark-as-done"
+        elif not done and not iscomment:
+           eventype="mark-as-undone"
+        elif iscomment:
+           eventype="comment"
         else:
-           eventype="undone"
-        if base==None or cookies=="" or task==None:
-           return '{"error":"incorrect parameter"}'
+           eventype="mark-as-done"
+
+        if base==None:
+           return '{"error":"incorrect \'base\' parameter"}'
+        if task==None:
+           return '{"error":"incorrect \'task\' parameter"}'
+        if cookies==None:
+           return '{"error":"incorrect \'cookies\' parameter"}'
+
         guid = task['student']['guid']
         author = task['setter']['guid']
         sendtime = str( time.strftime("%Y-%m-%dT%H:%M:%S.000Z")  )
-        print("MARKASTODO STUDENT GUID="+guid+"  SETTER GUID="+author+"  TIMESTAMP="+sendtime)
-        data = {
-                 "recipient": {
-                   "type": "user",
-                   "guid": guid
-                 },
-                 "event": {
-                   "type": "mark-as-"+eventype,
-                   "feedback": "",
-                   "sent": str(sendtime),
-                   "author": author,
-                 }
-        }
-        data = str(json.dumps(data)).replace(" ","")
+        print("MARK STUDENT GUID="+guid+"  SETTER GUID="+author+"  TIMESTAMP="+sendtime)
+        if eventype!="comment":
+         data = {
+                  "recipient": {
+                    "type": "user",
+                    "guid": guid
+                  },
+                  "event": {
+                    "type": eventype,
+                    "feedback": "",
+                    "sent": str(sendtime),
+                    "author": author,
+                  }
+                }
+         data = str(json.dumps(data)).replace(" ","")
+        else:
+         data = {
+                  "recipient": {
+                    "type": "user",
+                    "guid": guid
+                  },
+                  "event": {
+                    "type": eventype,
+                    "message":comment,
+                    "feedback": "",
+                    "sent": str(sendtime),
+                    "author": author,
+                  }
+                }
+         data = str(json.dumps(data))
+        #data = str(json.dumps(data)).replace(" ","")
         data = "data="+urllib.parse.quote_plus(data)
         print("DATA: ",data)
         extracookies = "" #"FireflyNETLoggedIn=yes; Prelogin=https://wincoll.fireflycloud.net/;"
@@ -182,7 +209,7 @@ def markasdone(base="wincoll.fireflycloud.net",cookies="",task=None,done=True):
         except urllib.error.HTTPError as e:
           with open("error.htm", "wb") as f:
            f.write(e.fp.read())
-          return "{\"error\":\"HTTPError "+str(handler.getcode())+"\"}"
+          return "{\"error\":\"HTTPError "+str(e.code)+"\"}"
         #json_tasks = json.loads(handler.read().decode("utf8"))
         return handler.read().decode()
 
