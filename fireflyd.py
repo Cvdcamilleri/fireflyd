@@ -2,8 +2,8 @@
 # fireflyd, Copyright Charlie Camilleri 2018
 
 import urllib.request, urllib.error, urllib.parse
-from fireflyd_lib import *
-from fireflyd_login import *
+from lib import *
+from login import *
 from getpass import *
 import argparse,base64,hmac,hashlib
 #from up_cache import u,p # file contains username/password for easier development. WILL CHANGE LATER
@@ -162,7 +162,7 @@ def web_mark_done(hmac,tid):
 		return '{"error":"not supported with generated cookies. try again having used the -m argument"}'
 
 @app.route("/<hmac>/tasks/<tid>/marktodo")
-def web_mark_undone(tid):
+def web_mark_undone(tid,hmac):
 	if hmac != computehmac(tid) and usehmac:
                 print("BAD HMAC, EXPECTED ",computehmac(tid,mac=hmac))
                 return '{"error":"invalid MAC"}'
