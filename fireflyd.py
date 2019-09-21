@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # fireflyd, Copyright Charlie Camilleri 2018
 
+#GPLv3 license! DO NOT DISTRIBUTE!!
+
 import urllib.request, urllib.error, urllib.parse
 from lib import *
 from login import *
