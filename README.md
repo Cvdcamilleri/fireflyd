@@ -16,4 +16,4 @@ to find where folder IDs are generated/found
 
 # Other stuff
 
-Take a look at [Gleb]https://github.com/Gleb-ko/firefly.py 's repo
+Take a look at Gleb's work on reversing Firefly:  [**firefly.py**](https://github.com/Gleb-ko/firefly.py)
