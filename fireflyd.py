@@ -46,32 +46,45 @@ base_url = "wincoll.fireflycloud.net" # base firefly url -- not including http/h
 
 print("[ fireflyd copyright Charlie Camilleri 2019 ]")
 
-global _done
-global _todo
+#_done
+#_todo
 global __tasks
-global _cookies
+#global _cookies
 
-_done="<none>"
-_todo="<none>"
+_done=[]
+_todo=[]
 
 __tasks = []
-_cookies="<none>"
+_cookies=[]
+cookies =[]
+
+if not mcookieused:
+ print("[ logging in ]")
+ _cookies = weblogin(base_url)
+elif mcookieused:
+ print("[ cookes pasted ]")
+ _cookies = mcookie
+else:
+ _cookies="NOSET"
 
 def refresh():
-	if not mcookieused:
-		print("[ logging in ]")
-		cookies = weblogin(base_url)
-	elif mcookieused:
-		print("[ cookes pasted ]")
-		cookies = mcookie
+	global _todo
+	global _done
+	#if not mcookieused:
+	#	print("[ logging in ]")
+	#	cookies = weblogin(base_url)
+	#elif mcookieused:
+	#	print("[ cookes pasted ]")
+	#	cookies = mcookie
 	print("[ logged in ]")
-	_cookies = cookies
+	#cookies = _cookies
+	#_cookies = cookies
 	tasks = []
-
+	print(_cookies)
 	print("[ downloading tasks ]")
 	pages=1
 	while True:
-		_tasks = get_tasks(cookies=cookies,page=pages,base=base_url)
+		_tasks = get_tasks(cookies=_cookies,page=pages,base=base_url)
 		print("[ downloaded page",pages,", of length",len(_tasks['list'])," ]\t\t",end="\r")
 		if ( len(_tasks['list']) == 0 ):
 			break
@@ -93,23 +106,37 @@ def refresh():
 				todo.append(task)
 	print("")
 
-	_todo = json.dumps(todo)
-	_done = json.dumps(done)
-	_cookies = cookies
+	#_todo = json.dumps(todo)
+	#_done = json.dumps(done)
+	_todo = todo
+	_done = done
+	#_cookies = cookies
 
-	print(cookies)
-	return _todo,_done,_cookies
-
+	print(_cookies)
+	return _todo,_done
 
 def get_task(tid):
 	for task in __tasks:
 		if str(task['id']) == str(tid):
-			return str(task)
+			return task
 	return "{ 'error':'not found' }"
 
-_todo, _done, _cookies = refresh() # Initial refresh
+def getindex(tid,ta):
+	___c=0
+	for task in ta:
+		if str(task['id']) == str(tid):
+			return c
+		c+=1
+	return 0xffffffff
+
+_todo, _done = refresh() # Initial refresh
 
 print(gcookies())
+
+print("*****************************")
+print("Done LEN=",len(_done))
+print("Todo LEN=",len(_todo))
+print("*****************************")
 
 print("[ starting webserver ]")
 
@@ -153,25 +180,39 @@ def web_disp_task(hmac,tid):
 
 @app.route("/<hmac>/tasks/<tid>/markdone")
 def web_mark_done(hmac,tid):
+	global _todo
+	global _done
 	if hmac != computehmac(tid) and usehmac:
 		print("BAD HMAC, EXPECTED ",computehmac(tid,mac=hmac))
 		return '{"error":"invalid MAC"}'
 	if extcookies:
-		task_ = get_task(int(tid)).replace("\'","\"").replace("None","\"None\"").replace("False","\"False\"").replace("True","\"True\"").replace(" ","")
-		task_ = json.loads(task_)
-		return feedback(cookies=_cookies,base=base_url,task=task_)
+		task_ = get_task(int(tid))
+		print(_todo[len(_todo)-1])
+		print(task_)
+		_todo.remove(task_)
+		#task_ = json.loads(task_)
+		fb=feedback(cookies=_cookies,base=base_url,task=task_)
+		_done.append(task_)
+		return fb
 	else:
 		return '{"error":"not supported with generated cookies. try again having used the -m argument"}'
 
 @app.route("/<hmac>/tasks/<tid>/marktodo")
-def web_mark_undone(tid,hmac):
+def web_mark_undone(hmac,tid):
+	global _todo
+	global _done
 	if hmac != computehmac(tid) and usehmac:
                 print("BAD HMAC, EXPECTED ",computehmac(tid,mac=hmac))
                 return '{"error":"invalid MAC"}'
 	if extcookies:
-		task_ = get_task(int(tid)).replace("\'","\"").replace("None","\"None\"").replace("False","\"False\"").replace("True","\"True\"").replace(" ","")
-		task_ = json.loads(task_)
-		return feedback(cookies=_cookies,base=base_url,task=task_,done=False)
+		task_ = get_task(int(tid))
+		print(_done[len(_done)-1])
+		print(task_)
+		_done.remove(task_)
+		#task_ = json.loads(task_)
+		fb= feedback(cookies=_cookies,base=base_url,task=task_,done=False)
+		_todo.append(task_)
+		return fb
 	else:
 		return '{"error":"not supported with generated cookies. try again having used the -m argument"}'
 
@@ -182,8 +223,8 @@ def web_comment(tid):
                 return '{"error":"invalid MAC"}'
 	if extcookies:
 		b64txt = urllib.parse.unquote_plus(request.args['b64'])
-		task_ = get_task(int(tid)).replace("\'","\"").replace("None","\"None\"").replace("False","\"False\"").replace("True","\"True\"").replace(" ","")
-		task_ = json.loads(task_)
+		task_ = get_task(int(tid))
+		#task_ = json.loads(task_)
 		return feedback(cookies=_cookies,base=base_url,task=task_,iscomment=True,comment=base64.b64decode(b64txt).decode())
 	else:
 		return '{"error":"not supported with generated cookies. try again having used the -m argument"}'
@@ -208,6 +249,10 @@ def send_file():
 
 #from flask_httpauth import HTTPBasicAuth
 #auth = HTTPBasicAuth()
+
+#web_mark_undone("nohash","25776")
+#web_mark_done("nohash","25776")
+#web_mark_undone("nohash","25776")
 
 if not basicauth:
 	app.run(ssl_context=('ssl/cert.pem', 'ssl/key.pem'))
