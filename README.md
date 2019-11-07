@@ -1,4 +1,4 @@
-# fireflyd -- The firefly reverse engineering effort
+# fireflyd
 
 fireflyd is my attempt at creating a program that locally caches Firefly data, and allows you to submit/mark as done etc. your Firefly tasks from a local, cached API
 
