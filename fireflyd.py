@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
 # fireflyd, Copyright Charlie Camilleri 2018
 
-#GPLv3 license! DO NOT DISTRIBUTE!!
-
 import urllib.request, urllib.error, urllib.parse
-from lib import *
-from login import *
+from fireflyd_lib import *
+from fireflyd_login import *
 from getpass import *
 import argparse,base64,hmac,hashlib
 #from up_cache import u,p # file contains username/password for easier development. WILL CHANGE LATER
