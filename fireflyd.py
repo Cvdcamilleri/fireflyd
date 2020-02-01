@@ -5,7 +5,7 @@ import urllib.request, urllib.error, urllib.parse
 from fireflyd_lib import *
 from fireflyd_login import *
 from getpass import *
-import argparse,base64,hmac,hashlib
+import argparse,base64,hmac,hashlib,os
 #from up_cache import u,p # file contains username/password for easier development. WILL CHANGE LATER
 #yeet i've just done it
 
@@ -135,6 +135,9 @@ print("*****************************")
 print("Done LEN=",len(_done))
 print("Todo LEN=",len(_todo))
 print("*****************************")
+
+#print("[ development mode, no webserver ]")
+#exit(0)
 
 print("[ starting webserver ]")
 

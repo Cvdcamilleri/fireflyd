@@ -14,6 +14,7 @@ fireflyd is my attempt at creating a program that locally caches Firefly data, a
 file submission -- likely requires RE of [**vendor.93fe217cd90803c037ba.min.js**](https://github.com/Cvdcamilleri/fireflyd/blob/master/firefly_assets/vendor.93fe217cd90803c037ba.min.js)
 to find where folder IDs are generated/found
 
-# Other stuff
+<!--# Other stuff
 
 Take a look at Gleb's work on reversing Firefly:  [**firefly.py**](https://github.com/Gleb-ko/firefly.py)
+-->
